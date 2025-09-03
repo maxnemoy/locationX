@@ -1,29 +1,35 @@
-use actix_web::{web, Scope};
 use crate::presentation::handlers::{
-    server_status_handler, 
-    db_status_handler,
-    create_user_handler,
-    get_user_handler,
-    get_all_users_handler,
-    delete_user_handler,
+    guest::guest_zone,
+    status::{db, server},
+    token::refresh,
+    user::{auth_user, get_current_user, register_user, update_current_user},
 };
 
-pub fn status_routes() -> Scope {
-    web::scope("/status")
-        .route("/server", web::get().to(server_status_handler))
-        .route("/db", web::get().to(db_status_handler))
-}
-
-pub fn user_routes() -> Scope {
-    web::scope("/user")
-        .route("", web::post().to(create_user_handler))
-        .route("", web::get().to(get_all_users_handler))
-        .route("/{id}", web::get().to(get_user_handler))
-        .route("/{id}", web::delete().to(delete_user_handler))
-}
+use actix_web::{Scope, web};
 
 pub fn api_v1_routes() -> Scope {
     web::scope("/v1")
+        .route("/token", web::post().to(refresh::handler))
         .service(status_routes())
         .service(user_routes())
+        .service(guest_routes())
+}
+
+pub fn status_routes() -> Scope {
+    web::scope("/status")
+        .route("/server", web::get().to(server::handler))
+        .route("/db", web::get().to(db::handler))
+}
+
+// Новые API эндпоинты
+pub fn user_routes() -> Scope {
+    web::scope("user")
+        .route("/", web::get().to(get_current_user::handler))
+        .route("/", web::patch().to(update_current_user::handler))
+        .route("/", web::put().to(register_user::handler))
+        .route("/", web::post().to(auth_user::handler))
+}
+
+pub fn guest_routes() -> Scope {
+    web::scope("guest").route("/", web::get().to(guest_zone::handler))
 }

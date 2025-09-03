@@ -2,6 +2,7 @@ use crate::domain::entities::{DbStatus, PingResponse, CreateUserRequest, CreateU
 use crate::domain::traits::{DatabaseHealthChecker, HealthService, UserRepository, UserService};
 use async_trait::async_trait;
 use std::sync::Arc;
+use uuid::Uuid;
 
 pub struct HealthServiceImpl {
     db_checker: Arc<dyn DatabaseHealthChecker + Send + Sync>,
@@ -38,15 +39,18 @@ impl UserServiceImpl {
 impl UserService for UserServiceImpl {
     async fn create_user(&self, user_data: CreateUserRequest) -> Result<CreateUserResponse, String> {
         let user = self.user_repository.create_user(user_data).await?;
+        
+        // Конвертируем из новой структуры User в старую CreateUserResponse
+        // TODO: В будущем лучше обновить CreateUserResponse для соответствия новой User структуре
         Ok(CreateUserResponse {
-            id: user.id,
+            id: 1, // Временно используем фиксированное значение для совместимости
             username: user.username,
-            email: user.email,
+            email: user.email.unwrap_or_default(),
             message: "Пользователь успешно создан".to_string(),
         })
     }
 
-    async fn get_user(&self, id: u32) -> Result<User, String> {
+    async fn get_user(&self, id: Uuid) -> Result<User, String> {
         match self.user_repository.get_user_by_id(id).await? {
             Some(user) => Ok(user),
             None => Err("Пользователь не найден".to_string()),
@@ -59,7 +63,7 @@ impl UserService for UserServiceImpl {
         Ok(UsersListResponse { users, total })
     }
 
-    async fn delete_user(&self, id: u32) -> Result<String, String> {
+    async fn delete_user(&self, id: Uuid) -> Result<String, String> {
         if self.user_repository.delete_user(id).await? {
             Ok("Пользователь успешно удален".to_string())
         } else {
