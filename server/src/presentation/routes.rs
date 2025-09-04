@@ -21,15 +21,14 @@ pub fn status_routes() -> Scope {
         .route("/db", web::get().to(db::handler))
 }
 
-// Новые API эндпоинты
 pub fn user_routes() -> Scope {
     web::scope("user")
-        .route("/", web::get().to(get_current_user::handler))
-        .route("/", web::patch().to(update_current_user::handler))
-        .route("/", web::put().to(register_user::handler))
-        .route("/", web::post().to(auth_user::handler))
+        .route("", web::get().to(get_current_user::handler))
+        .route("", web::patch().to(update_current_user::handler))
+        .route("", web::put().to(register_user::handler))
+        .route("", web::post().to(auth_user::handler))
 }
 
 pub fn guest_routes() -> Scope {
-    web::scope("guest").route("/", web::get().to(guest_zone::handler))
+    web::scope("guest").route("", web::get().to(guest_zone::handler))
 }
